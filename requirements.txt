@@ -1,0 +1,5 @@
+telepot
+pyTelegramBotAPI
+schedule
+gspread
+validators
