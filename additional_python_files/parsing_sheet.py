@@ -31,7 +31,7 @@ def get_lessons_row(user, week, day, row_index):
     counter = 0  # counter for moving along rows
     for i in week_column:
         counter += 1
-        if i == week:
+        if i == week or i == "both":
             if worksheet.cell(counter, 1).value == day:
                 lesson_to_change.append(worksheet.row_values(counter))
                 if row_index:

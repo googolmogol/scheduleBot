@@ -91,7 +91,7 @@ def message_handler(bot, message):
     elif message.text == variable.dictionary_bot[user]['delete_this_lesson']:
         text = variable.dictionary_bot[user]["are_you_sure_to_del_lesson"]
         text += ' "' + variable.lesson_to_change[user][int(variable.user_step_edit_list[user]["lesson_num"]) - 1][2] + \
-                '"'
+                '"?'
         btn_list = list()
         btn_list.append(variable.dictionary_bot[user]['yes'])
         btn_list.append(variable.dictionary_bot[user]['no'])
@@ -104,6 +104,11 @@ def message_handler(bot, message):
             for i in range(1, 7):
                 ps.update_data(ps.worksheet, ps.row_index_to_change[user][int(variable.user_step_edit_list[user]
                                                                               ["lesson_num"]) - 1], i, "")
+            btn_list = list()
+            btn_list.append(variable.dictionary_bot[user]["back_to_lesson_choosing"])
+            btn_list.append(variable.dictionary_bot[user]["main_menu"])
+            text = variable.dictionary_bot[user]["deleted"]
+            message_with_text(bot, message, text, simple_keyboard(True, False, 0, 2, btn_list))
         else:
             message_with_text(bot, message, variable.dictionary_bot[user]["tech_changes"], simple_keyboard(True, True,
                               0, 2, [variable.dictionary_bot[user]["main_menu"]]))
@@ -284,6 +289,7 @@ def message_handler(bot, message):
                     btn_list.append(variable.dictionary_bot[user]["back_to_day_choosing"])
                     btn_list.append(variable.dictionary_bot[user]["main_menu"])
                     text = variable.lesson_to_change[user][int(variable.user_step_edit_list[user]["lesson_num"]) - 1][2]
+                    print(text)
                     message_with_text(bot, message, text, simple_keyboard(True, False, 2, 3, btn_list))
 
         else:

@@ -166,7 +166,8 @@ dictionary_UA = {
     "are_you_sure_to_del_lesson": "Ви впевнені, що хочете видалити пару",
     "enter_time_add": 'Введіть час пари, наприклад: "13:15"',
     "enter_correct_time": 'Введіть час правильно! Наприклад, "14:10"',
-    "enter_correct_link": 'Введіть коректне посилання!\nНаприклад, "https://google.com"'
+    "enter_correct_link": 'Введіть коректне посилання!\nНаприклад, "https://google.com"',
+    "deleted": 'Видалив'
 }
 
 dictionary_RU = {
@@ -224,5 +225,6 @@ dictionary_RU = {
     "are_you_sure_to_del_lesson": "Вы уверены, что хотите удалить пару",
     "enter_time_add": 'Введите время пары, например: "13:15"',
     "enter_correct_time": 'Введите время правильно! Например, "14:10"',
-    "enter_correct_link": 'Введите корректную ссылку!\nНапример, "https://google.com"'
+    "enter_correct_link": 'Введите корректную ссылку!\nНапример, "https://google.com"',
+    "deleted": 'Удалил'
 }
