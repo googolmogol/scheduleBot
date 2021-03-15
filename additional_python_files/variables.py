@@ -74,7 +74,7 @@ def edit_lesson_list(user):
             dictionary_bot[user]["back_to_edit_menu"], dictionary_bot[user]["main_menu"]]
 
 
-def show_schedule_list(user):
+def week_list(user):
     return [dictionary_bot[user]["even"], dictionary_bot[user]["odd"], dictionary_bot[user]["main_menu"]]
 
 

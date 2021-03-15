@@ -11,6 +11,7 @@ def message_handler(bot, message):
     try:
         if len(variable.dictionary_bot[user]) < 1:
             variable.get_language(user, 'UA')
+
     except Exception as ex:
         print(ex)
         lang = ps.get_user_language(user)
@@ -49,6 +50,9 @@ def message_handler(bot, message):
     ###########################
     elif message.text == variable.dictionary_bot[user]['back_to_lesson_choosing']:
         try:
+            week = get_key(variable.dictionary_bot[user], variable.user_step_edit_list[user]["week"])
+            day = get_key(variable.dictionary_bot[user], variable.user_step_edit_list[user]["day"])
+            variable.button_list[user], variable.text_list[user] = get_lessons_to_change(user, week, day)
             clear_user_step(variable.user_step_edit_list[user], "lesson_num")
             message_with_text(bot, message, variable.text_list[user], simple_keyboard(True, False, 2, 3,
                                                                                       variable.button_list[user]))
@@ -68,8 +72,7 @@ def message_handler(bot, message):
                 value = get_key(variable.dictionary_bot[user], variable.user_step_edit_list[user]["changed_value"])
             else:
                 value = variable.user_step_edit_list[user]["changed_value"]
-            print(ps.worksheet, row, col, value)
-            ps.update_data(ps.worksheet, row, col, value)
+            ps.update_data(user, row, col, value)
 
             btn_list = [variable.dictionary_bot[user]['back_to_day_choosing'],
                         variable.dictionary_bot[user]["main_menu"]]
@@ -83,7 +86,7 @@ def message_handler(bot, message):
             week = get_key(variable.dictionary_bot[user], variable.user_step_add_list[user]['week'])
             variable.user_step_add(user, "day", day)
             variable.user_step_add(user, "week", week)
-            ps.add_new_lesson(list(variable.user_step_add_list[user].values())[1:])
+            ps.add_new_lesson(user, list(variable.user_step_add_list[user].values())[1:])
             message_with_text(bot, message, text, simple_keyboard(True, False, 2, 2, btn_list))
     #################
     # delete button #
@@ -102,8 +105,8 @@ def message_handler(bot, message):
     elif message.text == variable.dictionary_bot[user]['yes']:
         if status_user(variable.user_step_edit_list[user], "lesson_num"):
             for i in range(1, 7):
-                ps.update_data(ps.worksheet, ps.row_index_to_change[user][int(variable.user_step_edit_list[user]
-                                                                              ["lesson_num"]) - 1], i, "")
+                ps.update_data(user, ps.row_index_to_change[user][int(variable.user_step_edit_list[user]
+                                                                  ["lesson_num"]) - 1], i, "")
             btn_list = list()
             btn_list.append(variable.dictionary_bot[user]["back_to_lesson_choosing"])
             btn_list.append(variable.dictionary_bot[user]["main_menu"])
@@ -196,7 +199,7 @@ def message_handler(bot, message):
             show_schedule(bot, message)
             variable.user_show_schedule[user]["action"] = message.text
             message_with_text(bot, message, variable.dictionary_bot[user]['choose_week'],
-                              simple_keyboard(True, False, 0, 2, variable.show_schedule_list(user)))
+                              simple_keyboard(True, False, 0, 2, variable.week_list(user)))
 
         elif message.text == variable.dictionary_bot[user]["edit_schedule"]:
             message_with_text(bot, message, variable.dictionary_bot[user]['choose_what_edit'],
@@ -220,12 +223,19 @@ def message_handler(bot, message):
 
         if message.text == variable.dictionary_bot[user]["edit_lesson"]:
             variable.user_step_edit(user, "action", message.text)
+            btn_list = variable.edit_lesson_list(user)[:-3]
+            btn_list.append(variable.dictionary_bot[user]["back_to_edit_menu"])
+            btn_list.append(variable.dictionary_bot[user]["main_menu"])
             message_with_text(bot, message, variable.dictionary_bot[user]['choose_week'],
-                              simple_keyboard(True, False, 0, 3, variable.edit_lesson_list(user)))
+                              simple_keyboard(True, False, 0, 2, btn_list))
         elif message.text == variable.dictionary_bot[user]["delete_lesson"]:
             variable.user_step_edit(user, "action", message.text)
+            btn_list = variable.edit_lesson_list(user)[:-3]
+            btn_list.append(variable.dictionary_bot[user]["back_to_edit_menu"])
+            btn_list.append(variable.dictionary_bot[user]["main_menu"])
+
             message_with_text(bot, message, variable.dictionary_bot[user]['choose_week'],
-                              simple_keyboard(True, False, 0, 3, variable.edit_lesson_list(user)))
+                              simple_keyboard(True, False, 0, 2, btn_list))
         elif message.text == variable.dictionary_bot[user]["add_lesson"]:
             variable.user_step_add(user, "action", message.text)
             message_with_text(bot, message, variable.dictionary_bot[user]['choose_day'],
@@ -245,7 +255,7 @@ def message_handler(bot, message):
                     variable.dictionary_bot[user]["odd"] or message.text == variable.dictionary_bot[user]["both"]:
                 week = get_key(variable.dictionary_bot[user], message.text)
                 message_with_text(bot, message, ps.get_all_lessons(user, week), simple_keyboard(True, True,
-                                  0, 2, variable.show_schedule_list(user)))
+                                                                                        0, 2, variable.week_list(user)))
         else:
             message_with_text(bot, message, variable.dictionary_bot[user]["tech_changes"], simple_keyboard(True, True,
                               0, 2, [variable.dictionary_bot[user]["main_menu"]]))
@@ -260,6 +270,7 @@ def message_handler(bot, message):
             week = get_key(variable.dictionary_bot[user], variable.user_step_edit_list[user]["week"])
             day = get_key(variable.dictionary_bot[user], variable.user_step_edit_list[user]["day"])
             variable.button_list[user], variable.text_list[user] = get_lessons_to_change(user, week, day)
+
             message_with_text(bot, message, variable.text_list[user], simple_keyboard(True, False, 2, 3,
                               variable.button_list[user]))
         elif status_user(variable.user_step_add_list[user], "action"):
@@ -289,7 +300,6 @@ def message_handler(bot, message):
                     btn_list.append(variable.dictionary_bot[user]["back_to_day_choosing"])
                     btn_list.append(variable.dictionary_bot[user]["main_menu"])
                     text = variable.lesson_to_change[user][int(variable.user_step_edit_list[user]["lesson_num"]) - 1][2]
-                    print(text)
                     message_with_text(bot, message, text, simple_keyboard(True, False, 2, 3, btn_list))
 
         else:
@@ -306,7 +316,6 @@ def message_handler(bot, message):
             text = variable.dictionary_bot[user]["enter"] + " " + variable.dictionary_bot[user][value].lower()
             if message.text == variable.dictionary_bot[user]["week's"]:
                 btn_list = variable.edit_lesson_list(user)[:-2]
-                print(btn_list)
                 btn_list.append(variable.dictionary_bot[user]["back_to_lesson_choosing"])
                 btn_list.append(variable.dictionary_bot[user]["main_menu"])
                 message_with_text(bot, message, text, simple_keyboard(True, False, 0, 3, btn_list))
@@ -317,9 +326,10 @@ def message_handler(bot, message):
                               0, 2, [variable.dictionary_bot[user]["main_menu"]]))
 
     else:
-        message_with_text(bot, message, 'Это собсна што', "")
+        message_with_text(bot, message, 'Это собсна што', simple_keyboard(True, True,
+                              0, 2, [variable.dictionary_bot[user]["main_menu"]]))
 
-    print("EDIT  :", message.from_user.first_name, variable.user_step_edit_list[user])
-    print("ADD  :", message.from_user.first_name, variable.user_step_add_list[user])
+    print(message.from_user.first_name, "EDIT:", variable.user_step_edit_list[user])
+    print(message.from_user.first_name, "ADD:", variable.user_step_add_list[user])
 
     print('MESSAGE TEXT =', message.text)

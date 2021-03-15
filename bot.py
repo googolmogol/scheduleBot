@@ -1,6 +1,7 @@
 from threading import Thread
 
 from additional_python_files.callback_handler import callback_call
+import additional_python_files.parsing_sheet as ps
 from additional_python_files.send_messages import message_with_text
 import additional_python_files.variables as v
 from additional_python_files.reply_keyboard import *
@@ -16,13 +17,23 @@ bot = telebot.TeleBot("1642275922:AAHxeYvKI821oXHIaD2D0XiSra9goFiqNQ4")
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
+    try:
+        fname = str(message.from_user.first_name)
+        surname = str(message.from_user.last_name)
+        usr_id = str(message.from_user.username)
+
+        ps.insert_users(message.chat.id, 'UA', fname, surname, usr_id)
+        ps.create_work(str(message.chat.id))
+
+    except Exception as e:
+        print(e)
+
     language = inline_button_callback({"Українська": 'ua', "Русский": 'ru'})
     message_with_text(bot, message, "Для знаходження спільної мови давайте визначимо її.\nОберіть мову:", language)
 
 
 @bot.message_handler(content_types=['text'])
 def send_echo(message):
-    print(message.from_user.first_name, message.text)
     message_handler(bot, message)
 
 

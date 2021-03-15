@@ -12,8 +12,14 @@ import additional_python_files.variables as v
 
 gc = gspread.service_account(filename='restfiles/cred.json')
 sh = gc.open_by_key("19dLgpGsLAW4K4yiSdbpsA-njCGiDwhiYXa3uaWFJbsY")
-worksheet = sh.sheet1
+
 worksheet2 = sh.worksheet("users")
+
+
+def create_work(name):
+    worksheet = sh.add_worksheet(title=name, rows="100", cols="20")
+    worksheet.append_row(['day', 'time', 'lesson_name', 'teacher', 'week', 'link'])
+
 
 # dictionary to recognize which day is today
 days_dict = {"monday": 1, "tuesday": 2, "wednesday": 3, "thursday": 4, "friday": 5, "saturday": 6, "sunday": 7}
@@ -23,6 +29,8 @@ row_index_to_change = {}
 
 # function parsing lesson row
 def get_lessons_row(user, week, day, row_index):
+    worksheet = sh.worksheet(str(user))
+
     week_column = worksheet.col_values(5)  # list of weeks column
 
     row_index_to_change.clear()
@@ -42,6 +50,7 @@ def get_lessons_row(user, week, day, row_index):
 
 
 def get_all_lessons(user, week):
+    worksheet = sh.worksheet(str(user))
     list_of_lists = worksheet.get_all_values()
     week_lessons = ''
     for k in days_dict.items():
@@ -65,18 +74,25 @@ def get_all_lessons(user, week):
     return week_lessons
 
 
-def insert_users(data_list):
-    for i in range(0, len(data_list)):
-        worksheet2.update_cell(i + 2, 1, data_list[i])
+def insert_users(user, language, name, surname, usr_id):
+    users = worksheet2.col_values(1)[1:]
+    if str(user) not in users:
+        worksheet2.append_row([user, language, name, surname, usr_id])
 
 
-def update_data(work_sh, row, col, value):
-    work_sh.update_cell(row, col, value)
+def update_data(user, row, col, value):
+    try:
+        worksheet = sh.worksheet(str(user))
+    except Exception as e:
+        print(e)
+        worksheet = user
+    worksheet.update_cell(row, col, value)
 
 
 def update_language_user(user, language):
     users_id = worksheet2.col_values(1)
     counter = 0
+
     for i in users_id:
         counter += 1
         if str(i) == str(user):
@@ -92,7 +108,8 @@ def get_user_language(user):
             return worksheet2.cell(counter, 2).value
 
 
-def add_new_lesson(user_step):
+def add_new_lesson(user, user_step):
+    worksheet = sh.worksheet(str(user))
     worksheet.append_row(user_step)
 
 
