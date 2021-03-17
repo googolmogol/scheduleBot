@@ -78,7 +78,7 @@ def checker_schedule():
     while True:
         if len(v.chat_id_list) > 0:
             schedule.run_pending()
-            if datetime.today().isoweekday() == 7 and str(datetime.now().time())[:-7] == "21:59:59":
+            if datetime.today().isoweekday() == 7 and str(datetime.now().time())[:-7] == "23:59:59":
                 week_change()
 
         time.sleep(1)

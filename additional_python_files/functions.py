@@ -117,7 +117,8 @@ def get_schedule(bot, message, user, week):
                     text = v.dictionary_bot[user]["lesson"] + ": " + i[2] + "\n" + v.dictionary_bot[user]["teacher"] + \
                            ": " + i[3]
                     url = i[5]
-                    time = ps.time_before_lesson(i[1], "02:00")
+                    #time = ps.time_before_lesson(i[1], "02:00")
+                    time = i[1]
                     v.schedule_list[user] = schedule.every().day.at(time).do(send_schedule_msg, bot, message, text, url)
     except Exception as e:
         print(e)
@@ -131,7 +132,7 @@ def get_reminder(bot, message, user):
                 text = v.dictionary_bot[user]["reminder"] + "!\n"
                 text += v.dictionary_bot[user]["lesson"] + ' "' + i[2] + v.dictionary_bot[user]["reminder_txt"] + i[1]
                 time = ps.time_before_lesson(i[1], rem_time)
-                time = ps.time_before_lesson(time, "02:00")  # для хероку, не хочет менять таймзону
+                #time = ps.time_before_lesson(time, "02:00")  # для хероку, не хочет менять таймзону
                 v.schedule_list[user] = schedule.every().day.at(time).do(message_with_text, bot, message, text, "")
     except Exception as e:
         print(e)
