@@ -7,20 +7,24 @@ import additional_python_files.parsing_sheet as ps
 
 def message_handler(bot, message):
     user = message.chat.id
-    # Если язык не установлен, по умолчанию ставит украинский
-    try:
-        if len(variable.dictionary_bot[user]) < 1:
-            variable.get_language(user, 'UA')
-
-    except Exception as ex:
-        print(ex)
-        lang = ps.get_user_language(user)
-        if lang != '' and lang is not None:
-            variable.get_language(user, lang)
+    if variable.change_time_rem[user]:
+        if message.text == variable.dictionary_bot[user]["save"]:
+            ps.notif_update(user, 8, variable.change_value_rem[user])
+            text = variable.dictionary_bot[user]["save_action"]
+            message_with_text(bot, message, text, simple_keyboard(True, False, 0, 2, variable.bot_settings_list(user)))
         else:
-            variable.get_language(user, 'UA')
+            if datetime_format(user, str(message.text))[1]:
+                variable.change_value_rem[user] = message.text
+                btn_list = [variable.dictionary_bot[user]["save"],
+                            variable.dictionary_bot[user]["main_menu"]]
+                message_with_text(bot, message, variable.dictionary_bot[user]["press_save_edit"],
+                                  simple_keyboard(True, True, 0, 2, btn_list))
+            else:
+                text = datetime_format(user, message.text)[0]
+                message_with_text(bot, message, text, "")
 
-    if message.text == variable.dictionary_bot[user]["main_menu"]:
+    elif message.text == variable.dictionary_bot[user]["main_menu"]:
+        variable.get_change_rem_time(user, False)
         clear_user_step(variable.user_step_edit_list[user], "action")
         clear_user_step(variable.user_step_add_list[user], "action")
         simple_message(bot, message, simple_keyboard(True, False, 0, 2, variable.main_menu_list(user)))
@@ -32,6 +36,29 @@ def message_handler(bot, message):
         clear_user_step(variable.user_step_add_list[user], "action")
 
         simple_message(bot, message, simple_keyboard(True, False, 0, 2, variable.edit_schedule_list(user)))
+    ####################
+    # notification btn #
+    ####################
+    elif message.text == variable.dictionary_bot[user]["notification"]:
+        variable.get_change_rem_time(user, False)
+
+        text = variable.dictionary_bot[user]["choose_become_notification_text"]
+        btn_list = {variable.dictionary_bot[user]["get"]: "get", variable.dictionary_bot[user]["don't_get"]:
+            "don't_get"}
+        message_with_text(bot, message, text, inline_button_callback(btn_list, 2))
+    ################
+    # reminder btn #
+    ################
+    elif message.text == variable.dictionary_bot[user]["reminder"]:
+        variable.get_change_rem_time(user, False)
+
+        text = variable.dictionary_bot[user]["choose_become_reminder_text"]
+        btn_list = {variable.dictionary_bot[user]["get"]: "get_rem", variable.dictionary_bot[user]["don't_get"]:
+            "don't_get_rem"}
+        message_with_text(bot, message, text, inline_button_callback(btn_list, 2))
+        text = variable.dictionary_bot[user]["change_time_text"]
+        btn = {variable.dictionary_bot[user]["change_time"]: 'ch_time'}
+        message_with_text(bot, message, text, inline_button_callback(btn, 2))
     ########################
     # back to choosing day #
     ########################
@@ -79,6 +106,7 @@ def message_handler(bot, message):
             text = variable.dictionary_bot[user]["save_action"]
             message_with_text(bot, message, text, simple_keyboard(True, False, 2, 2, btn_list))
             clear_user_step(variable.user_step_edit_list[user], "changed_value")
+            get_schedule(bot, message, user, variable.week)
         elif status_user(variable.user_step_add_list[user], 'link'):
             btn_list = [variable.dictionary_bot[user]['back_to_edit_menu'], variable.dictionary_bot[user]["main_menu"]]
             text = variable.dictionary_bot[user]["save_action"]
@@ -88,6 +116,7 @@ def message_handler(bot, message):
             variable.user_step_add(user, "week", week)
             ps.add_new_lesson(user, list(variable.user_step_add_list[user].values())[1:])
             message_with_text(bot, message, text, simple_keyboard(True, False, 2, 2, btn_list))
+            get_schedule(bot, message, user, variable.week)
     #################
     # delete button #
     #################
@@ -112,6 +141,7 @@ def message_handler(bot, message):
             btn_list.append(variable.dictionary_bot[user]["main_menu"])
             text = variable.dictionary_bot[user]["deleted"]
             message_with_text(bot, message, text, simple_keyboard(True, False, 0, 2, btn_list))
+            get_schedule(bot, message, user, variable.week)
         else:
             message_with_text(bot, message, variable.dictionary_bot[user]["tech_changes"], simple_keyboard(True, True,
                               0, 2, [variable.dictionary_bot[user]["main_menu"]]))
@@ -123,6 +153,24 @@ def message_handler(bot, message):
         btn_list.append(variable.dictionary_bot[user]["back_to_lesson_choosing"])
         btn_list.append(variable.dictionary_bot[user]["main_menu"])
         simple_message(bot, message, simple_keyboard(True, False, 0, 2, btn_list))
+        #########################
+        # choose item to change #
+        #########################
+    elif message.text in variable.edit_lesson_btn_list(user):
+        if status_user(variable.user_step_edit_list[user], 'lesson_num'):
+            variable.user_step_edit(user, "item_to_change", message.text)
+            value = get_key(variable.dictionary_bot[user], variable.user_step_edit_list[user]["item_to_change"])
+            text = variable.dictionary_bot[user]["enter"] + " " + variable.dictionary_bot[user][value].lower()
+            if message.text == variable.dictionary_bot[user]["week's"]:
+                btn_list = variable.edit_lesson_list(user)[:-2]
+                btn_list.append(variable.dictionary_bot[user]["back_to_lesson_choosing"])
+                btn_list.append(variable.dictionary_bot[user]["main_menu"])
+                message_with_text(bot, message, text, simple_keyboard(True, False, 0, 3, btn_list))
+            else:
+                message_with_text(bot, message, text, simple_keyboard(True, True, 0, 0, ""))
+        else:
+            message_with_text(bot, message, variable.dictionary_bot[user]["tech_changes"],
+                              simple_keyboard(True, True, 0, 2, [variable.dictionary_bot[user]["main_menu"]]))
     #######################
     # enter value to edit #
     #######################
@@ -131,8 +179,8 @@ def message_handler(bot, message):
                     variable.dictionary_bot[user]["main_menu"]]
         item = get_key(variable.dictionary_bot[user], variable.user_step_edit_list[user]["item_to_change"])
         if item == 'time':
-            if datetime_format(message.text)[1]:
-                variable.user_step_edit(user, "changed_value", datetime_format(message.text)[0])
+            if datetime_format(user, message.text)[1]:
+                variable.user_step_edit(user, "changed_value", datetime_format(user, message.text)[0])
                 message_with_text(bot, message, variable.dictionary_bot[user]["press_save_edit"],
                                   simple_keyboard(True, True, 0, 2, btn_list))
             else:
@@ -184,8 +232,8 @@ def message_handler(bot, message):
         text = variable.dictionary_bot[user]["enter"] + " " + variable.dictionary_bot[user]["teacher's"].lower()
         message_with_text(bot, message, text, "")
     elif status_user(variable.user_step_add_list[user], 'day'):
-        if datetime_format(message.text)[1]:
-            variable.user_step_add(user, "time", datetime_format(message.text)[0])
+        if datetime_format(user, message.text)[1]:
+            variable.user_step_add(user, "time", datetime_format(user, message.text)[0])
             text = variable.dictionary_bot[user]["enter"] + " " + variable.dictionary_bot[user]["lesson_name"].lower()
             message_with_text(bot, message, text, "")
         else:
@@ -196,7 +244,6 @@ def message_handler(bot, message):
     ##################
     elif message.text in variable.main_menu_list(user):
         if message.text == variable.dictionary_bot[user]['show_schedule']:
-            show_schedule(bot, message)
             variable.user_show_schedule[user]["action"] = message.text
             message_with_text(bot, message, variable.dictionary_bot[user]['choose_week'],
                               simple_keyboard(True, False, 0, 2, variable.week_list(user)))
@@ -206,14 +253,27 @@ def message_handler(bot, message):
                               simple_keyboard(True, False, 0, 2, variable.edit_schedule_list(user)))
 
         elif message.text == variable.dictionary_bot[user]["settings_bot"]:
-            simple_message(bot, message, simple_keyboard(True, False, 0, 2, variable.bot_settings_list(user)))
+            simple_message(bot, message, simple_keyboard(True, True, 0, 2, variable.bot_settings_list(user)))
     ##################
     # bot settings ###
     ##################
     elif message.text in variable.bot_settings_list(user):
+        variable.get_change_rem_time(user, False)
         if message.text == variable.dictionary_bot[user]['change_language']:
-            language = inline_button_callback({"Українська": 'ua', "Русский": 'ru'})
-            message_with_text(bot, message, variable.dictionary_bot[user]["choose_lan"], language)
+            if variable.dictionary_bot[user]["yes"] == 'Так':
+                btn_list = call_back_flag('ua')
+            else:
+                btn_list = call_back_flag('ru')
+            language = inline_button_callback(btn_list, 2)
+            text = variable.dictionary_bot[user]["choose_lan"] + '\n'
+            text += variable.dictionary_bot[user]["curr_lan"]
+            message_with_text(bot, message, text, language)
+        elif message.text == variable.dictionary_bot[user]["notification_lesson"]:
+            btn_list = variable.dictionary_bot[user]["notification"], variable.dictionary_bot[user]["reminder"], \
+                       variable.dictionary_bot[user]["settings_bot"], variable.dictionary_bot[user]["main_menu"]
+            message_with_text(bot, message, variable.dictionary_bot[user]["notification_describe_text"],
+                              simple_keyboard(True, True, 0, 2, btn_list))
+
     ######################
     # edit schedule list #
     ######################
@@ -302,25 +362,6 @@ def message_handler(bot, message):
                     text = variable.lesson_to_change[user][int(variable.user_step_edit_list[user]["lesson_num"]) - 1][2]
                     message_with_text(bot, message, text, simple_keyboard(True, False, 2, 3, btn_list))
 
-        else:
-            message_with_text(bot, message, variable.dictionary_bot[user]["tech_changes"], simple_keyboard(True, True,
-                              0, 2, [variable.dictionary_bot[user]["main_menu"]]))
-
-    #########################
-    # choose item to change #
-    #########################
-    elif message.text in variable.edit_lesson_btn_list(user):
-        if status_user(variable.user_step_edit_list[user], 'lesson_num'):
-            variable.user_step_edit(user, "item_to_change", message.text)
-            value = get_key(variable.dictionary_bot[user], variable.user_step_edit_list[user]["item_to_change"])
-            text = variable.dictionary_bot[user]["enter"] + " " + variable.dictionary_bot[user][value].lower()
-            if message.text == variable.dictionary_bot[user]["week's"]:
-                btn_list = variable.edit_lesson_list(user)[:-2]
-                btn_list.append(variable.dictionary_bot[user]["back_to_lesson_choosing"])
-                btn_list.append(variable.dictionary_bot[user]["main_menu"])
-                message_with_text(bot, message, text, simple_keyboard(True, False, 0, 3, btn_list))
-            else:
-                message_with_text(bot, message, text, simple_keyboard(True, True, 0, 0, ""))
         else:
             message_with_text(bot, message, variable.dictionary_bot[user]["tech_changes"], simple_keyboard(True, True,
                               0, 2, [variable.dictionary_bot[user]["main_menu"]]))

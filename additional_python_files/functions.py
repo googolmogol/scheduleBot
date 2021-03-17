@@ -1,9 +1,11 @@
 from datetime import datetime
 
+import schedule
 import validators
 
 import additional_python_files.variables as v
 import additional_python_files.parsing_sheet as ps
+from additional_python_files.send_messages import send_schedule_msg, message_with_text
 
 
 def get_key(d, value):
@@ -80,7 +82,7 @@ def get_text_choosing_lesson_num(user, message):
     text = '\n'
     text += v.dictionary_bot[user]['lesson'] + ": " + v.lesson_to_change[user][index - 1][2] + "\n" + \
         v.dictionary_bot[user]['teacher'] + ": " + v.lesson_to_change[user][index - 1][
-        3] + "\n" + v.dictionary_bot[user]['time'] + ": " + v.lesson_to_change[user][index - 1][1] + "\n" + \
+                3] + "\n" + v.dictionary_bot[user]['time'] + ": " + v.lesson_to_change[user][index - 1][1] + "\n" + \
         v.dictionary_bot[user]['link'] + ": " + '<a href="' + v.lesson_to_change[user][index - 1][5] + '">' + \
         v.dictionary_bot[user]['link_short'] + '</a>\n' + v.dictionary_bot[user]["week"] + ': ' + \
         v.dictionary_bot[user][v.lesson_to_change[user][index - 1][4]].lower()
@@ -89,12 +91,12 @@ def get_text_choosing_lesson_num(user, message):
     return btn_list, text
 
 
-def datetime_format(time):
+def datetime_format(user, time):
     try:
         return str(datetime.strptime(time, "%H:%M"))[11:-3], True
     except Exception as e:
         print(e)
-        return "Введіть час правильно!", False
+        return v.dictionary_bot[user]["enter_correct_time"], False
 
 
 def checking_url(url):
@@ -102,3 +104,51 @@ def checking_url(url):
         return False
     else:
         return True
+
+
+def get_schedule(bot, message, user, week):
+    try:
+        if ps.get_notif(user, 6) == "yes":
+            day = get_key(ps.days_dict, datetime.today().isoweekday())
+            v.schedule_lesson[user] = ps.get_lessons_row(user, week, day, False)
+            if len(v.schedule_lesson[user]) > 0:
+                get_reminder(bot, message, user)
+                for i in v.schedule_lesson[user]:
+                    text = v.dictionary_bot[user]["lesson"] + ": " + i[2] + "\n" + v.dictionary_bot[user]["teacher"] + \
+                           ": " + i[3]
+                    url = i[5]
+                    time = ps.time_before_lesson(i[1], "02:00")
+                    v.schedule_list[user] = schedule.every().day.at(time).do(send_schedule_msg, bot, message, text, url)
+    except Exception as e:
+        print(e)
+
+
+def get_reminder(bot, message, user):
+    try:
+        if ps.get_notif(user, 7) == "yes":
+            rem_time = ps.get_notif(user, 8)
+            for i in v.schedule_lesson[user]:
+                text = v.dictionary_bot[user]["reminder"] + "!\n"
+                text += v.dictionary_bot[user]["lesson"] + ' "' + i[2] + v.dictionary_bot[user]["reminder_txt"] + i[1]
+                time = ps.time_before_lesson(i[1], rem_time)
+                time = ps.time_before_lesson(time, "02:00")  # для хероку, не хочет менять таймзону
+                v.schedule_list[user] = schedule.every().day.at(time).do(message_with_text, bot, message, text, "")
+    except Exception as e:
+        print(e)
+
+
+def week_change():
+    if v.week == "odd":
+        v.week = "even"
+    else:
+        v.week = "odd"
+    print("week has changed")
+
+
+def call_back_flag(lan):
+    flag = '\ud83c\uddfa\ud83c\udde6'.encode("utf-16", "surrogatepass").decode("utf-16", "surrogatepass")
+    if lan == 'ua':
+        btn_list = {flag + "Українська": 'ua', "Русский": 'ru'}
+    else:
+        btn_list = {"Українська": 'ua', flag + "Русский": 'ru'}
+    return btn_list

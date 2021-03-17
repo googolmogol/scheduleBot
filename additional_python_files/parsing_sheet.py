@@ -74,10 +74,10 @@ def get_all_lessons(user, week):
     return week_lessons
 
 
-def insert_users(user, language, name, surname, usr_id):
+def insert_users(user, language, name, surname, usr_id, notification, reminder, time_rem):
     users = worksheet2.col_values(1)[1:]
     if str(user) not in users:
-        worksheet2.append_row([user, language, name, surname, usr_id])
+        worksheet2.append_row([user, language, name, surname, usr_id, notification, reminder, time_rem])
 
 
 def update_data(user, row, col, value):
@@ -87,6 +87,27 @@ def update_data(user, row, col, value):
         print(e)
         worksheet = user
     worksheet.update_cell(row, col, value)
+
+
+def notif_update(user, col, value):
+    row = 1
+    users = worksheet2.col_values(1)[1:]
+    for i in users:
+        row += 1
+        if i == str(user):
+            break
+
+    worksheet2.update_cell(row, col, value)
+
+
+def get_notif(user, col):
+    users = worksheet2.col_values(1)[1:]
+    row = 1
+    for i in users:
+        row += 1
+        if i == str(user):
+            break
+    return worksheet2.cell(row, col).value
 
 
 def update_language_user(user, language):
@@ -117,5 +138,5 @@ def get_users_id():
     return worksheet2.col_values(1)[1:]
 
 
-def time_before_lesson(lesson_time):
-    return str(datetime.strptime(lesson_time, "%H:%M") - datetime.strptime("00:10", "%H:%M"))[:-3]
+def time_before_lesson(lesson_time, mytime):
+    return str(datetime.strptime(lesson_time, "%H:%M") - datetime.strptime(mytime, "%H:%M"))[:-3]

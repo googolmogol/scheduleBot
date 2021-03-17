@@ -55,7 +55,8 @@ def main_menu_list(user):
 
 
 def bot_settings_list(user):
-    return [dictionary_bot[user]['change_language'], dictionary_bot[user]["main_menu"]]
+    return [dictionary_bot[user]["notification_lesson"], dictionary_bot[user]['change_language'],
+            dictionary_bot[user]["main_menu"]]
 
 
 def edit_lesson_btn_list(user):
@@ -93,11 +94,30 @@ button_list = {}  # list for creating dynamic buttons
 text_list = {}
 lesson_to_change = {}  # list to save nedeed rows
 chat_id_list = get_users_id()  # list to determine user is new or no
-week = False  # current week
+week = "odd"  # current week
 lock_is = True  # var for week changing
 global schedule_var, schedule_var2  # vars for schedules
 lesson_today = []  # list for parsing today's lessons
 dictionary_bot = {}
+schedule_lesson = {}
+schedule_list = {}
+
+time_reminder = {}
+
+change_time_rem = {}
+change_value_rem = {}
+
+
+def get_time_reminder(user, value):
+    time_reminder[user] = value
+    return time_reminder
+
+
+def get_change_rem_time(user, value):
+    change_time_rem[user] = value
+
+
+global first_schedule
 
 
 def get_language(user, language):
@@ -108,6 +128,7 @@ def get_language(user, language):
         dictionary_bot[user] = dictionary_RU
     # init user_step dict
     user_step_init(user)
+    get_change_rem_time(user, False)
 
 
 dictionary_UA = {
@@ -167,7 +188,34 @@ dictionary_UA = {
     "enter_time_add": 'Введіть час пари, наприклад: "13:15"',
     "enter_correct_time": 'Введіть час правильно! Наприклад, "14:10"',
     "enter_correct_link": 'Введіть коректне посилання!\nНаприклад, "https://google.com"',
-    "deleted": 'Видалив'
+    "deleted": 'Видалив',
+    "notification_lesson": 'Сповіщення про пару',
+    "reminder": 'Нагадування',
+    "change time": 'Змінити час',
+    "notification": 'Сповіщення',
+    "back_to_menu_notification": 'Назад в меню сповіщень',
+    "notification_describe_text": 'Натисніть кнопку "Сповіщення", щоб встановити/прибрати сповіщення про пару\n'
+                                  'Натисніть кнопку "Нагадування", щоб встановити/прибрати нагадування, а також його '
+                                  'час',
+    "get": 'Отримувати',
+    "don't_get": 'Не отримувати',
+    "choose_become_notification_text": 'Як працює сповіщення?\nНаприклад, сьогодні за розкладом пара о 15:40. Бот '
+                                       'надішле Вам повідомлення про початок пари о 15:40.\n\nОберіть, чи хочете Ви '
+                                       'отримувати сповіщення про пари:',
+    "curr_lan": '(Зараз встановлена україньска мова)',
+    "you_will_become_notifications": 'Ви будете отримувати сповіщення про пару',
+    "you_won't_become_notifications": 'Вы не будете отримувати сповіщення про пару',
+    "choose_become_reminder_text": 'Як це працює?\nНаприклад, сьогодні пара об 11:40. Бот відправить Вам нагадування '
+                                   'за 10 хвилин до початку пари, тобто об 11:30.\n\nОберіть, чи хочете Ви отримувати '
+                                   'нагадування про пари:',
+    "you_will_become_reminder": 'Ви будете отримувати нагадування про пару',
+    "you_won't_become_reminder": 'Вы не будете отримувати нагадування про пару',
+    "change_time": 'Змінити час',
+    "change_time_text": 'За замовчуванням час нагадування про пару - за 10 хвилин до початку пари.\nЯкщо ви хочете '
+                        'його змінити натисніть кнопку "Змінити час"',
+    "enter_time_rem": 'Введіть час у форматі "00:25"(за 25 хвилин до початку пари)',
+    "reminder_txt": '" відбудеться сьогодні о '
+
 }
 
 dictionary_RU = {
@@ -226,5 +274,31 @@ dictionary_RU = {
     "enter_time_add": 'Введите время пары, например: "13:15"',
     "enter_correct_time": 'Введите время правильно! Например, "14:10"',
     "enter_correct_link": 'Введите корректную ссылку!\nНапример, "https://google.com"',
-    "deleted": 'Удалил'
+    "deleted": 'Удалил',
+    "notification_lesson": 'Оповещение о паре',
+    "reminder": 'Напоминание',
+    "change time": 'Изменить время',
+    "notification": 'Оповещение',
+    "back_to_menu_notification": 'Назад в меню оповещений',
+    "notification_describe_text": 'Нажмите кнопку "Оповещение", чтобы установить/убрать оповещение о паре\nНажмите '
+                                  'кнопку "Напоминание", чтобы установить/убрать напоминание, а также его время',
+    "get": 'Получать',
+    "don't_get": 'Не получать',
+    "choose_become_notification_text": 'Как работает оповещение?\nНапример, сегодня по расписанию пара в 15:40. Бот '
+                                       'пришлет Вам сообщение о начале пары в 15:40.\n\nВыберите, хотите ли Вы получать'
+                                       ' оповещение о парах:',
+    "choose_become_reminder_text": 'Как это работает?\nНапример, сегдоня пара 11:40. Бот отправит Вам напоминание за '
+                                   '10 минут до начала пары, то есть в 11:30.\n\nВыберите, хотите ли Вы получать '
+                                   'напоминание о парах:',
+
+    "curr_lan": '(Сейчас установлен русский язык)',
+    "you_will_become_notifications": 'Вы будете получать уведомление о паре',
+    "you_won't_become_notifications": 'Вы не будете получать уведомление о паре',
+    "you_will_become_reminder": 'Вы будете получать напоминание о паре',
+    "you_won't_become_reminder": 'Вы не будете получать напоминание о паре',
+    "change_time": 'Изменить время',
+    "change_time_text": 'По умолчанию время напоминания о паре - за 10 минут до начала пары.\nЕсли вы хотите его '
+                        'изменить нажмите кноку "Изменить время"',
+    "enter_time_rem": 'Введите время в формате "00:30"(за 30 минут до начала пары)',
+    "reminder_txt": '" состоится сегодня в '
 }

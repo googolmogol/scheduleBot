@@ -13,13 +13,13 @@ def inline_button_url(text, url):
     return markup
 
 
-def inline_button_callback(list_btn):
+def inline_button_callback(list_btn, btn_count):
     markup = telebot.types.InlineKeyboardMarkup()
     btn = []
     keys = list(list_btn.keys())
     for i in keys:
         btn.append(telebot.types.InlineKeyboardButton(text=i, callback_data=list_btn[i]))
-    return few_btn_row(markup, btn, 0, 3)
+    return few_btn_row(markup, btn, 0, btn_count)
 
 
 def simple_keyboard(resize, hide, count_btn, count_btn_in_row, list_btns):
