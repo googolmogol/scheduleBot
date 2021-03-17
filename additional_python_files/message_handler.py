@@ -7,10 +7,19 @@ import additional_python_files.parsing_sheet as ps
 
 def message_handler(bot, message):
     user = message.chat.id
-    if variable.change_time_rem[user]:
+
+    if message.text == variable.dictionary_bot[user]["main_menu"]:
+        variable.get_change_rem_time(user, False)
+        variable.change_time_rem[user] = False
+        clear_user_step(variable.user_step_edit_list[user], "action")
+        clear_user_step(variable.user_step_add_list[user], "action")
+        simple_message(bot, message, simple_keyboard(True, False, 0, 2, variable.main_menu_list(user)))
+
+    elif variable.change_time_rem[user]:
         if message.text == variable.dictionary_bot[user]["save"]:
             ps.notif_update(user, 8, variable.change_value_rem[user])
             text = variable.dictionary_bot[user]["save_action"]
+            variable.change_time_rem[user] = False
             message_with_text(bot, message, text, simple_keyboard(True, False, 0, 2, variable.bot_settings_list(user)))
         else:
             if datetime_format(user, str(message.text))[1]:
@@ -23,11 +32,6 @@ def message_handler(bot, message):
                 text = datetime_format(user, message.text)[0]
                 message_with_text(bot, message, text, "")
 
-    elif message.text == variable.dictionary_bot[user]["main_menu"]:
-        variable.get_change_rem_time(user, False)
-        clear_user_step(variable.user_step_edit_list[user], "action")
-        clear_user_step(variable.user_step_add_list[user], "action")
-        simple_message(bot, message, simple_keyboard(True, False, 0, 2, variable.main_menu_list(user)))
     #####################
     # back to edit menu #
     #####################
